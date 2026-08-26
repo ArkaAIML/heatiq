@@ -20,8 +20,10 @@ env/
 # Data
 data/raw/*
 data/processed/*
+data/interim/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!data/interim/.gitkeep
 !data/sample/.gitkeep
 
 *.csv
