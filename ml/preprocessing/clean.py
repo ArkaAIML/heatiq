@@ -135,6 +135,7 @@ def derive_canonical_weather(
     *,
     radiation_accumulation_seconds: float,
     solar_negative_tolerance_wm2: float = 0.01,
+    relative_humidity_tolerance_pct: float = 0.1,
 ) -> xr.Dataset:
     """Derive the ML-internal canonical weather variables from ERA5 data.
 
@@ -153,6 +154,10 @@ def derive_canonical_weather(
         raise ValueError("solar_negative_tolerance_wm2 must be finite")
     if solar_negative_tolerance_wm2 < 0:
         raise ValueError("solar_negative_tolerance_wm2 cannot be negative")
+    if not np.isfinite(relative_humidity_tolerance_pct):
+        raise ValueError("relative_humidity_tolerance_pct must be finite")
+    if relative_humidity_tolerance_pct < 0:
+        raise ValueError("relative_humidity_tolerance_pct cannot be negative")
 
     temperature_c = dataset["t2m"] - 273.15
     dewpoint_c = dataset["d2m"] - 273.15
@@ -162,6 +167,20 @@ def derive_canonical_weather(
         (17.625 * dewpoint_c) / (243.04 + dewpoint_c)
         - (17.625 * temperature_c) / (243.04 + temperature_c)
     )
+    if bool((relative_humidity_pct < -1e-6).any().item()):
+        minimum = float(relative_humidity_pct.min().item())
+        raise ValueError(
+            "relative humidity is below the permitted numerical tolerance: "
+            f"minimum={minimum}%"
+        )
+    maximum_permitted_rh = 100.0 + relative_humidity_tolerance_pct
+    if bool((relative_humidity_pct > maximum_permitted_rh).any().item()):
+        maximum = float(relative_humidity_pct.max().item())
+        raise ValueError(
+            "relative humidity exceeds the permitted supersaturation "
+            f"tolerance: maximum={maximum}%, permitted={maximum_permitted_rh}%"
+        )
+    relative_humidity_pct = relative_humidity_pct.clip(min=0.0, max=100.0)
 
     solar_radiation_wm2 = dataset["ssrd"] / radiation_accumulation_seconds
     if bool((solar_radiation_wm2 < -solar_negative_tolerance_wm2).any().item()):
