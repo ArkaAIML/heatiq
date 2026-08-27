@@ -1,0 +1,47 @@
+[infopool]
+active_sources = ["MOCK_CENSUS", "MOCK_SURVEY"]
+
+[infopool.sources.MOCK_CENSUS]
+type = "local"
+format = "csv"
+path = "datalake/tests/fixtures/mock_census.csv"
+priority = 1
+[infopool.sources.MOCK_CENSUS.mapping]
+Ward_No = "area_id"
+Total_Pop = "population"
+Pop_Density = "population_density"
+
+[infopool.sources.MOCK_SURVEY]
+type = "local"
+format = "csv"
+path = "datalake/tests/fixtures/mock_survey.csv"
+priority = 2
+[infopool.sources.MOCK_SURVEY.mapping]
+ward_id = "area_id"
+Outdoor_Workers = "outdoor_worker_fraction"
+Elderly_Pct = "elderly_fraction"
+Child_Pct = "child_fraction"
+
+[resourcepool]
+active_sources = ["MOCK_HOSPITALS", "MOCK_COOLING"]
+
+[resourcepool.sources.MOCK_HOSPITALS]
+type = "local"
+format = "csv"
+path = "datalake/tests/fixtures/mock_hospitals.csv"
+priority = 1
+[resourcepool.sources.MOCK_HOSPITALS.mapping]
+Ward_No = "area_id"
+Hospitals = "hospital_count"
+Hospital_Beds = "hospital_capacity"
+
+[resourcepool.sources.MOCK_COOLING]
+type = "local"
+format = "csv"
+path = "datalake/tests/fixtures/mock_cooling.csv"
+priority = 2
+[resourcepool.sources.MOCK_COOLING.mapping]
+ward_id = "area_id"
+Cooling_Centers = "cooling_centre_count"
+Dist_to_Healthcare = "distance_to_healthcare_km"
+Resource_Score = "resource_capacity_score"
