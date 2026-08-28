@@ -1,165 +1,124 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { ConditionsPanels } from "./components/dashboard/ConditionsPanels";
+import { OverviewPanels } from "./components/dashboard/OverviewPanels";
+import { ResponsePanels } from "./components/dashboard/ResponsePanels";
 import { ControlBar } from "./components/ControlBar";
-import { DataValue } from "./components/DataValue";
-import { SectionPanel } from "./components/SectionPanel";
-import { StatusBadge } from "./components/StatusBadge";
+import { DataStateNotice } from "./components/DataStateNotice";
 import { SystemHeader } from "./components/SystemHeader";
+import type { DashboardRepository } from "./services/dashboardRepository";
+import { mockDashboardRepository } from "./services/mockDashboardRepository";
+import type { DashboardRequestState } from "./types/dashboard";
 
-const wardLabels: Record<string, string> = {
-  all: "All wards",
-  "ward-12": "Ward 12",
-  "ward-27": "Ward 27",
-};
-
-function AwaitingData({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="data-state" role="status">
-      <span className="data-state__icon" aria-hidden="true">!</span>
-      <div>
-        <strong>Awaiting data</strong>
-        <p>{children}</p>
-      </div>
-    </div>
-  );
+interface AppProps {
+  repository?: DashboardRepository;
 }
 
-function App() {
+function formatUpdatedAt(value: string): string {
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) {
+    return "Invalid timestamp";
+  }
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Kolkata",
+  }).format(timestamp);
+}
+
+function App({ repository = mockDashboardRepository }: AppProps) {
   const [ward, setWard] = useState("all");
-  const selectedWard = wardLabels[ward];
+  const [refreshSequence, setRefreshSequence] = useState(0);
+  const [request, setRequest] = useState<DashboardRequestState>({ status: "loading" });
+
+  useEffect(() => {
+    let active = true;
+    setRequest({ status: "loading" });
+
+    void repository.getSnapshot(ward).then(
+      (snapshot) => {
+        if (active) {
+          setRequest({ status: "ready", snapshot });
+        }
+      },
+      (error: unknown) => {
+        if (active) {
+          const message = error instanceof Error ? error.message : "Unknown dashboard error";
+          setRequest({ status: "error", message });
+        }
+      },
+    );
+
+    return () => {
+      active = false;
+    };
+  }, [refreshSequence, repository, ward]);
+
+  const refresh = useCallback(() => {
+    setRefreshSequence((sequence) => sequence + 1);
+  }, []);
+
+  const snapshot = request.status === "ready" ? request.snapshot : null;
+  const headerState = request.status === "loading"
+    ? "loading"
+    : request.status === "error"
+      ? "error"
+      : snapshot?.freshness === "stale"
+        ? "stale"
+        : "demonstration";
 
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">Skip to dashboard content</a>
-      <SystemHeader />
+      <SystemHeader
+        operationalArea={snapshot ? `${snapshot.location.city} · Demonstration` : "Bhubaneswar · Demonstration"}
+        updatedLabel={snapshot ? formatUpdatedAt(snapshot.generatedAt) : "Awaiting demo data"}
+        state={headerState}
+      />
 
       <main id="main-content" className="dashboard-container">
-        <ControlBar ward={ward} onWardChange={setWard} />
+        <ControlBar
+          ward={ward}
+          onWardChange={setWard}
+          onRefresh={refresh}
+          isLoading={request.status === "loading"}
+          sourceLabel={snapshot?.sourceLabel ?? "HeatIQ demonstration repository"}
+        />
 
         <aside className="demo-notice" aria-label="Demonstration data notice">
           <strong>Demonstration interface</strong>
-          <span>No live backend or ward dataset is connected. Missing values are intentionally shown as unavailable.</span>
+          <span>All populated values are non-live demonstration data. Missing scientific outputs remain explicitly unavailable.</span>
         </aside>
 
-        <div className="dashboard-grid">
-          <SectionPanel
-            number="01"
-            title="Ward GIS Overview"
-            eyebrow="Spatial operations"
-            status={<StatusBadge tone="unavailable">Layer unavailable</StatusBadge>}
-            className="panel-map"
-          >
-            <div className="map-placeholder" role="img" aria-label="GIS ward map integration placeholder">
-              <div className="map-placeholder__grid" aria-hidden="true" />
-              <div className="map-placeholder__message">
-                <span className="map-placeholder__crosshair" aria-hidden="true">＋</span>
-                <strong>Ward boundary layer not loaded</strong>
-                <p>Integration surface reserved for validated GeoJSON and severity overlays.</p>
-              </div>
-              <div className="map-placeholder__legend" aria-label="Future severity legend">
-                <span>Future severity legend</span>
-                <i className="legend-swatch is-neutral" /> No data
-                <i className="legend-swatch is-amber" /> Warning
-                <i className="legend-swatch is-red" /> Severe
-              </div>
-            </div>
-          </SectionPanel>
+        {request.status === "loading" ? (
+          <div className="dashboard-message">
+            <DataStateNotice state="loading" title="Loading dashboard">
+              Retrieving the selected demonstration snapshot.
+            </DataStateNotice>
+          </div>
+        ) : null}
 
-          <SectionPanel
-            number="01A"
-            title="Selected Ward Brief"
-            eyebrow="Administrative context"
-            status={<StatusBadge>{selectedWard}</StatusBadge>}
-            className="panel-ward-brief"
-          >
-            <dl className="summary-list">
-              <div><dt>Selection</dt><dd>{selectedWard} · Demo only</dd></div>
-              <div><dt>Heat severity</dt><dd>Unavailable</dd></div>
-              <div><dt>Observation time</dt><dd>Awaiting data</dd></div>
-              <div><dt>Data freshness</dt><dd>Not connected</dd></div>
-            </dl>
-            <AwaitingData>Connect a validated ward context and hazard feed.</AwaitingData>
-          </SectionPanel>
+        {request.status === "error" ? (
+          <div className="dashboard-message">
+            <DataStateNotice state="error" title="Unable to load dashboard">
+              {request.message}. Use Refresh data to try again.
+            </DataStateNotice>
+          </div>
+        ) : null}
 
-          <SectionPanel number="02" title="Current Weather" eyebrow="Observed conditions" className="panel-weather">
-            <dl className="metric-grid">
-              <DataValue label="Air temperature" unit="°C" />
-              <DataValue label="Relative humidity" unit="%" />
-              <DataValue label="Wind speed" unit="m/s" />
-              <DataValue label="Surface pressure" unit="Pa" />
-            </dl>
-          </SectionPanel>
+        {snapshot?.freshness === "stale" ? (
+          <DataStateNotice state="stale" title="Stale demonstration data">
+            The repository marked this snapshot as stale. Do not treat it as current operational information.
+          </DataStateNotice>
+        ) : null}
 
-          <SectionPanel number="03" title="Thermal Stress" eyebrow="Deterministic indices" className="panel-thermal">
-            <dl className="metric-grid metric-grid--three">
-              <DataValue label="Heat Index" detail="No thermal feed" />
-              <DataValue label="UTCI" detail="No thermal feed" />
-              <DataValue label="WBGT" detail="No thermal feed" />
-            </dl>
-          </SectionPanel>
-
-          <SectionPanel
-            number="04"
-            title="D+1 Maximum Air Temperature"
-            eyebrow="ML forecast · Linear Regression v1"
-            status={<StatusBadge tone="unavailable">Prediction unavailable</StatusBadge>}
-            className="panel-forecast"
-          >
-            <div className="forecast-reading">
-              <span>Forecast value</span>
-              <strong>Unavailable</strong>
-              <small>degC · 1-day horizon</small>
-            </div>
-            <dl className="model-contract">
-              <div><dt>Target</dt><dd>target_temperature_max_c_d1</dd></div>
-              <div><dt>Model</dt><dd>Linear Regression v1</dd></div>
-              <div><dt>Feature date</dt><dd>Awaiting data</dd></div>
-              <div><dt>Generated at</dt><dd>Awaiting data</dd></div>
-            </dl>
-          </SectionPanel>
-
-          <SectionPanel number="05" title="Dangerous-Hours Outlook" eyebrow="Separate operational feed" className="panel-danger">
-            <AwaitingData>No dangerous-hours assessment is available. This panel does not derive its status from the D+1 temperature model.</AwaitingData>
-            <div className="timeline-placeholder" aria-hidden="true">
-              {Array.from({ length: 8 }, (_, index) => <span key={index} />)}
-            </div>
-          </SectionPanel>
-
-          <SectionPanel number="06" title="Ward Context & Resources" eyebrow="Exposure and capacity" className="panel-context">
-            <dl className="summary-list summary-list--compact">
-              <div><dt>Population context</dt><dd>Unavailable</dd></div>
-              <div><dt>Vulnerable groups</dt><dd>Awaiting data</dd></div>
-              <div><dt>Cooling facilities</dt><dd>Awaiting data</dd></div>
-              <div><dt>Health facilities</dt><dd>Awaiting data</dd></div>
-            </dl>
-          </SectionPanel>
-
-          <SectionPanel
-            number="07"
-            title="Government Action Advisory"
-            eyebrow="Operational circular"
-            status={<StatusBadge tone="unavailable">Not issued</StatusBadge>}
-            className="panel-advisory"
-          >
-            <article className="advisory-sheet">
-              <header>
-                <span>Draft decision-support output</span>
-                <strong>Reference: HEATIQ / DEMO / —</strong>
-              </header>
-              <h3>No recommendation available</h3>
-              <p>Operational actions will appear only when a validated risk assessment and recommendation response are available.</p>
-              <footer>For authorised review · Demonstration interface</footer>
-            </article>
-          </SectionPanel>
-
-          <SectionPanel number="08" title="Citizen Warning Preview" eyebrow="Public communication" className="panel-citizen">
-            <div className="citizen-preview">
-              <span className="citizen-preview__label">Preview unavailable</span>
-              <h3>No public warning generated</h3>
-              <p>A citizen-facing message requires validated location, timing, severity, and action guidance.</p>
-            </div>
-          </SectionPanel>
-        </div>
+        {snapshot ? (
+          <div className="dashboard-grid">
+            <OverviewPanels snapshot={snapshot} />
+            <ConditionsPanels snapshot={snapshot} />
+            <ResponsePanels snapshot={snapshot} />
+          </div>
+        ) : null}
       </main>
 
       <footer className="system-footer">

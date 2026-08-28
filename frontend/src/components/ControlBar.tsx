@@ -1,9 +1,18 @@
 interface ControlBarProps {
   ward: string;
   onWardChange: (ward: string) => void;
+  onRefresh: () => void;
+  isLoading: boolean;
+  sourceLabel: string;
 }
 
-export function ControlBar({ ward, onWardChange }: ControlBarProps) {
+export function ControlBar({
+  ward,
+  onWardChange,
+  onRefresh,
+  isLoading,
+  sourceLabel,
+}: ControlBarProps) {
   return (
     <section className="control-bar" aria-label="Dashboard controls">
       <div className="control-bar__field">
@@ -20,14 +29,14 @@ export function ControlBar({ ward, onWardChange }: ControlBarProps) {
       </div>
       <div className="control-bar__readout">
         <span className="control-bar__label">Data source</span>
-        <strong>Frontend demonstration dataset</strong>
+        <strong>{sourceLabel}</strong>
       </div>
       <div className="control-bar__readout">
         <span className="control-bar__label">Refresh cycle</span>
-        <strong>Not connected</strong>
+        <strong>Manual · Demo repository</strong>
       </div>
-      <button type="button" disabled title="Live API connection is not configured">
-        Refresh data
+      <button type="button" onClick={onRefresh} disabled={isLoading}>
+        {isLoading ? "Loading…" : "Refresh data"}
       </button>
     </section>
   );

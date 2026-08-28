@@ -1,6 +1,20 @@
 import { StatusBadge } from "./StatusBadge";
 
-export function SystemHeader() {
+interface SystemHeaderProps {
+  operationalArea: string;
+  updatedLabel: string;
+  state: "loading" | "demonstration" | "stale" | "error";
+}
+
+export function SystemHeader({ operationalArea, updatedLabel, state }: SystemHeaderProps) {
+  const statusLabel = {
+    loading: "Loading",
+    demonstration: "Demo mode",
+    stale: "Stale demo",
+    error: "Data error",
+  }[state];
+  const tone = state === "error" || state === "stale" ? "warning" : "unavailable";
+
   return (
     <header className="system-header">
       <div className="identity-rule" aria-hidden="true">
@@ -24,15 +38,15 @@ export function SystemHeader() {
         <dl className="system-metadata">
           <div>
             <dt>Operational area</dt>
-            <dd>Bhubaneswar · Demonstration</dd>
+            <dd>{operationalArea}</dd>
           </div>
           <div>
             <dt>Last updated</dt>
-            <dd>Awaiting live data</dd>
+            <dd>{updatedLabel}</dd>
           </div>
           <div>
             <dt>System status</dt>
-            <dd><StatusBadge tone="unavailable">Demo mode</StatusBadge></dd>
+            <dd><StatusBadge tone={tone}>{statusLabel}</StatusBadge></dd>
           </div>
         </dl>
       </div>
