@@ -34,6 +34,7 @@ data/interim/*
 *.h5
 
 # ML model artifacts
+artifacts/ml/
 *.pkl
 *.joblib
 *.pt
