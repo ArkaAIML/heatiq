@@ -83,6 +83,57 @@ class Era5PreprocessingTests(unittest.TestCase):
 
         np.testing.assert_allclose(canonical["relative_humidity_pct"], 100.0)
 
+    def test_small_relative_humidity_supersaturation_is_clamped(self) -> None:
+        dataset = self.dataset.copy(deep=True)
+        dataset["d2m"] = dataset["t2m"] + 0.005
+        dataset["d2m"].attrs["units"] = "K"
+        original_temperature = dataset["t2m"].copy(deep=True)
+        original_dewpoint = dataset["d2m"].copy(deep=True)
+
+        canonical = derive_canonical_weather(
+            dataset,
+            radiation_accumulation_seconds=3600,
+        )
+
+        np.testing.assert_allclose(canonical["relative_humidity_pct"], 100.0)
+        xr.testing.assert_identical(dataset["t2m"], original_temperature)
+        xr.testing.assert_identical(dataset["d2m"], original_dewpoint)
+
+    def test_large_relative_humidity_supersaturation_is_rejected(self) -> None:
+        dataset = self.dataset.copy(deep=True)
+        dataset["d2m"] = dataset["t2m"] + 0.1
+        dataset["d2m"].attrs["units"] = "K"
+
+        with self.assertRaisesRegex(ValueError, "supersaturation tolerance"):
+            derive_canonical_weather(
+                dataset,
+                radiation_accumulation_seconds=3600,
+            )
+
+    def test_invalid_relative_humidity_tolerance_is_rejected(self) -> None:
+        for tolerance in (-0.1, np.nan, np.inf):
+            with self.subTest(tolerance=tolerance), self.assertRaises(ValueError):
+                derive_canonical_weather(
+                    self.dataset,
+                    radiation_accumulation_seconds=3600,
+                    relative_humidity_tolerance_pct=tolerance,
+                )
+
+    def test_normal_relative_humidity_is_preserved(self) -> None:
+        temperature_c = self.dataset["t2m"] - 273.15
+        dewpoint_c = self.dataset["d2m"] - 273.15
+        expected = 100.0 * np.exp(
+            (17.625 * dewpoint_c) / (243.04 + dewpoint_c)
+            - (17.625 * temperature_c) / (243.04 + temperature_c)
+        )
+
+        canonical = derive_canonical_weather(
+            self.dataset,
+            radiation_accumulation_seconds=3600,
+        )
+
+        xr.testing.assert_allclose(canonical["relative_humidity_pct"], expected)
+
     def test_wind_speed_uses_vector_magnitude(self) -> None:
         canonical = derive_canonical_weather(
             self.dataset,
