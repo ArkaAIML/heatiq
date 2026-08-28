@@ -17,6 +17,7 @@ class ModelMetadata:
     feature_names: tuple[str, ...]
     forecast_horizon_days: int
     target_name: str | None = None
+    target_unit: str | None = None
 
 
 @dataclass(frozen=True)
@@ -28,6 +29,7 @@ class PredictionResult:
     forecast_horizon_days: int
     feature_date: datetime | None
     target_name: str | None
+    target_unit: str | None = None
 
 
 def predict_one(
@@ -60,6 +62,7 @@ def predict_one(
         forecast_horizon_days=metadata.forecast_horizon_days,
         feature_date=feature_date,
         target_name=metadata.target_name,
+        target_unit=metadata.target_unit,
     )
 
 
@@ -88,6 +91,9 @@ def _validate_metadata(metadata: ModelMetadata) -> None:
             raise ValueError("target_name must be a non-empty string or None")
         if metadata.target_name in metadata.feature_names:
             raise ValueError("target_name cannot be a model feature")
+    if metadata.target_unit is not None:
+        if not isinstance(metadata.target_unit, str) or not metadata.target_unit.strip():
+            raise ValueError("target_unit must be a non-empty string or None")
 
 
 def _validate_feature_date(feature_date: datetime | None) -> None:
