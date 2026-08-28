@@ -6,7 +6,7 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
-from ml.models import train_and_evaluate_xgboost
+from ml.models import fit_xgboost, train_and_evaluate_xgboost
 from ml.models.train_xgboost import _build_model
 from ml.preprocessing import ChronologicalSplits, SupervisedPartition
 
@@ -97,6 +97,16 @@ class XGBoostModelTests(unittest.TestCase):
         )
         self.assertTrue(np.isfinite(result.feature_importance["importance_gain"]).all())
         self.assertTrue((result.feature_importance["importance_gain"] >= 0).all())
+
+    def test_fit_xgboost_returns_fitted_estimator(self) -> None:
+        model = fit_xgboost(self.splits.train, self.splits.validation)
+
+        predictions = model.predict(self.splits.test.features)
+        self.assertEqual(len(predictions), len(self.splits.test.features))
+        self.assertEqual(
+            tuple(model.feature_names_in_),
+            tuple(self.splits.train.features.columns),
+        )
 
     def test_fixed_seed_is_deterministic(self) -> None:
         first = train_and_evaluate_xgboost(self.splits, random_seed=42)

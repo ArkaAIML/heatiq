@@ -3,6 +3,7 @@
 from ml.models.baseline import (
     evaluate_linear_regression_baseline,
     evaluate_persistence_baseline,
+    fit_linear_regression,
     persistence_predictions,
 )
 from ml.models.evaluate import (
@@ -11,7 +12,11 @@ from ml.models.evaluate import (
     RegressionMetrics,
     calculate_regression_metrics,
 )
-from ml.models.train_xgboost import XGBoostEvaluation, train_and_evaluate_xgboost
+from ml.models.train_xgboost import (
+    XGBoostEvaluation,
+    fit_xgboost,
+    train_and_evaluate_xgboost,
+)
 
 __all__ = [
     "BaselineEvaluation",
@@ -21,6 +26,8 @@ __all__ = [
     "calculate_regression_metrics",
     "evaluate_linear_regression_baseline",
     "evaluate_persistence_baseline",
+    "fit_linear_regression",
+    "fit_xgboost",
     "persistence_predictions",
     "train_and_evaluate_xgboost",
 ]

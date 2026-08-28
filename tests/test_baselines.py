@@ -10,6 +10,7 @@ from ml.models import (
     calculate_regression_metrics,
     evaluate_linear_regression_baseline,
     evaluate_persistence_baseline,
+    fit_linear_regression,
     persistence_predictions,
 )
 from ml.preprocessing import ChronologicalSplits, SupervisedPartition
@@ -107,6 +108,16 @@ class BaselineTests(unittest.TestCase):
         self.assertAlmostEqual(result.test.metrics.mae, 0.0, places=10)
         self.assertAlmostEqual(result.test.metrics.rmse, 0.0, places=10)
         self.assertAlmostEqual(result.test.metrics.r2, 1.0, places=10)
+
+    def test_fit_linear_regression_returns_fitted_estimator(self) -> None:
+        model = fit_linear_regression(self.splits.train)
+
+        predictions = model.predict(self.splits.validation.features)
+        self.assertEqual(len(predictions), len(self.splits.validation.features))
+        self.assertEqual(
+            tuple(model.feature_names_in_),
+            tuple(self.splits.train.features.columns),
+        )
 
     def test_mismatched_feature_schema_is_rejected(self) -> None:
         validation = SupervisedPartition(

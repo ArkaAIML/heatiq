@@ -36,15 +36,12 @@ def train_and_evaluate_xgboost(
     """Train once on train, early-stop on validation, and evaluate test once."""
 
     _validate_splits(splits)
-    seed = _validate_random_seed(random_seed)
-    model = _build_model(seed)
 
     training_started = perf_counter()
-    model.fit(
-        splits.train.features,
-        splits.train.target,
-        eval_set=[(splits.validation.features, splits.validation.target)],
-        verbose=False,
+    model = fit_xgboost(
+        splits.train,
+        splits.validation,
+        random_seed=random_seed,
     )
     training_duration_seconds = perf_counter() - training_started
 
@@ -75,6 +72,31 @@ def train_and_evaluate_xgboost(
         feature_importance=feature_importance,
         training_duration_seconds=float(training_duration_seconds),
     )
+
+
+def fit_xgboost(
+    training: SupervisedPartition,
+    validation: SupervisedPartition,
+    *,
+    random_seed: int = 42,
+) -> XGBRegressor:
+    """Fit and return XGBoost using validation only for early stopping."""
+
+    _validate_partition(training, "training")
+    _validate_partition(validation, "validation")
+    if list(validation.features.columns) != list(training.features.columns):
+        raise ValueError(
+            "validation feature columns must match training columns and order"
+        )
+
+    model = _build_model(_validate_random_seed(random_seed))
+    model.fit(
+        training.features,
+        training.target,
+        eval_set=[(validation.features, validation.target)],
+        verbose=False,
+    )
+    return model
 
 
 def _build_model(random_seed: int) -> XGBRegressor:

@@ -66,8 +66,7 @@ def evaluate_linear_regression_baseline(
     """Fit Linear Regression on train only, then evaluate held-out data."""
 
     _validate_splits(splits)
-    model = LinearRegression()
-    model.fit(splits.train.features, splits.train.target)
+    model = fit_linear_regression(splits.train)
 
     validation_predictions = model.predict(splits.validation.features)
     test_predictions = model.predict(splits.test.features)
@@ -82,6 +81,17 @@ def evaluate_linear_regression_baseline(
             test_predictions,
         ),
     )
+
+
+def fit_linear_regression(
+    training: SupervisedPartition,
+) -> LinearRegression:
+    """Fit and return Linear Regression using one training partition."""
+
+    _validate_partition(training, "training")
+    model = LinearRegression()
+    model.fit(training.features, training.target)
+    return model
 
 
 def _validate_splits(splits: ChronologicalSplits) -> None:
