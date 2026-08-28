@@ -1,47 +1,25 @@
 [infopool]
-active_sources = ["MOCK_CENSUS", "MOCK_SURVEY"]
+active_sources = ["BBSR_CENSUS_2011"]
 
-[infopool.sources.MOCK_CENSUS]
+[infopool.sources.BBSR_CENSUS_2011]
 type = "local"
-format = "csv"
-path = "datalake/tests/fixtures/mock_census.csv"
+format = "excel"
+path = "DDW_PCA2117_2011_MDDS with UI.xlsx"
 priority = 1
-[infopool.sources.MOCK_CENSUS.mapping]
-Ward_No = "area_id"
-Total_Pop = "population"
-Pop_Density = "population_density"
-
-[infopool.sources.MOCK_SURVEY]
-type = "local"
-format = "csv"
-path = "datalake/tests/fixtures/mock_survey.csv"
-priority = 2
-[infopool.sources.MOCK_SURVEY.mapping]
-ward_id = "area_id"
-Outdoor_Workers = "outdoor_worker_fraction"
-Elderly_Pct = "elderly_fraction"
-Child_Pct = "child_fraction"
+[infopool.sources.BBSR_CENSUS_2011.mapping]
+Ward = "area_id"
+TOT_P = "population"
+P_06 = "child_fraction"
+MAINWORK_P = "outdoor_worker_fraction"
 
 [resourcepool]
-active_sources = ["MOCK_HOSPITALS", "MOCK_COOLING"]
+active_sources = ["MOCK_RESOURCES"]
 
-[resourcepool.sources.MOCK_HOSPITALS]
+[resourcepool.sources.MOCK_RESOURCES]
 type = "local"
 format = "csv"
-path = "datalake/tests/fixtures/mock_hospitals.csv"
+path = "datalake/data/bhubaneswar_mock_resources.csv"
 priority = 1
-[resourcepool.sources.MOCK_HOSPITALS.mapping]
-Ward_No = "area_id"
-Hospitals = "hospital_count"
-Hospital_Beds = "hospital_capacity"
+[resourcepool.sources.MOCK_RESOURCES.mapping]
+# Columns in the CSV map exactly to the canonical schema
 
-[resourcepool.sources.MOCK_COOLING]
-type = "local"
-format = "csv"
-path = "datalake/tests/fixtures/mock_cooling.csv"
-priority = 2
-[resourcepool.sources.MOCK_COOLING.mapping]
-ward_id = "area_id"
-Cooling_Centers = "cooling_centre_count"
-Dist_to_Healthcare = "distance_to_healthcare_km"
-Resource_Score = "resource_capacity_score"

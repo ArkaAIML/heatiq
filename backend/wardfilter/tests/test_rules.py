@@ -60,12 +60,16 @@ def test_extreme_thermal_standalone(base_context):
     assert res.severity == "EXTREME"
 
 def test_elevated_mortality_escalation(base_context):
-    # HTSI = 40 (LOW), but Mortality = HIGH -> HIGH severity
+    # HTSI = 40 (LOW), but Mortality = HIGH.
+    # PREVIOUSLY this was a HIGH severity due to standalone mortality.
+    # NOW we explicitly verify it only falls back to LOW because there is no thermal stress.
     base_context.thermal.htsi = 40.0
     base_context.mortality.risk_level = "HIGH"
     engine = IntelligentFilteringEngine(rules=DEFAULT_RULESET)
     res = engine.evaluate(base_context)
-    assert res.severity == "HIGH"
+    assert res.severity == "LOW"
+    assert "BASELINE_MORTALITY_NO_THERMAL" in res.triggered_conditions
+    assert res.condition_message == "Low heat risk. Proceed with normal summer precautions."
 
 def test_high_thermal_high_mortality(base_context):
     # HTSI = 76 (CRITICAL threshold for mortality), Mortality = HIGH -> CRITICAL

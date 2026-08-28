@@ -7,10 +7,10 @@ from backend.wardfilter.schemas import WardFilterResult
 from backend.mortality.schemas import InfoPoolRecord, ResourcePoolRecord
 
 @patch("backend.wiring.wire1.WardContextStore")
-@patch("backend.wiring.wire1.AtmosphericDataAcquisitionAdapter")
+@patch("backend.wiring.wire1.GlobalDataAcquisitionAdapter")
 @patch("backend.wiring.wire1.get_canonical_info_pool")
 @patch("backend.wiring.wire1.get_canonical_resource_pool")
-@patch("backend.wiring.wire1.calculate_thermal_indices_batch")
+@patch("backend.wiring.wire1.calculate_thermal_indices")
 @patch("backend.wiring.wire1.PredictionAdapter")
 @patch("backend.wiring.wire1.calculate_mortality_risk_batch")
 @patch("backend.wiring.wire1.filter_wards")

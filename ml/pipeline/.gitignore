@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Data
+data/raw/*
+data/processed/*
+data/interim/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/interim/.gitkeep
+!data/sample/.gitkeep
+
+*.csv
+*.parquet
+*.nc
+*.tif
+*.tiff
+*.h5
+
+# ML model artifacts
+artifacts/ml/
+*.pkl
+*.joblib
+*.pt
+*.pth
+*.keras
+*.onnx
+
+# Node / frontend
+node_modules/
+.next/
+dist/
+build/
+
+# IDE / OS
+.idea/
+.DS_Store
+
+# Logs
+*.log

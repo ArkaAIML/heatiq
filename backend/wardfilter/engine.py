@@ -25,6 +25,7 @@ class Rule:
     condition: Callable[[WardContext], bool]
     severity: str
     reason_code: str
+    condition_message: str
     recommended_action: str
     priority: int = 0
     is_demo_rule: bool = False
@@ -57,20 +58,22 @@ class IntelligentFilteringEngine:
                 timestamp=context.timestamp,
                 severity=None,
                 message="Missing required thermal data (HTSI).",
+                condition_message="Insufficient data to compute ward condition.",
                 recommended_actions=[],
                 triggered_conditions=["MISSING_REQUIRED_DATA"],
                 context=context,
                 calculation_status="INSUFFICIENT_DATA"
             )
 
+        from .schemas import MissingDataError
+        
         triggered_rules = []
         for rule in self.rules:
             try:
                 if rule.condition(context):
                     triggered_rules.append(rule)
-            except Exception as e:
-                # If a rule errors, we skip it but log internally in a real system.
-                # For this MVP, we let it propagate or safely ignore based on architecture.
+            except MissingDataError:
+                # Rule is skipped cleanly because required data is missing
                 pass
 
         if not triggered_rules:
@@ -79,6 +82,7 @@ class IntelligentFilteringEngine:
                 timestamp=context.timestamp,
                 severity="NONE",
                 message="No significant risk conditions met.",
+                condition_message="Normal conditions. No significant thermal risk.",
                 recommended_actions=[],
                 triggered_conditions=[],
                 context=context
@@ -112,6 +116,7 @@ class IntelligentFilteringEngine:
             timestamp=context.timestamp,
             severity=highest_severity_rule.severity,
             message=message,
+            condition_message=highest_severity_rule.condition_message,
             recommended_actions=recommended_actions,
             triggered_conditions=triggered_conditions,
             context=context,

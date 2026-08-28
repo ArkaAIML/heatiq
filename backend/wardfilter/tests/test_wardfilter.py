@@ -41,6 +41,7 @@ class TestWardFilter(unittest.TestCase):
                 condition=lambda ctx: ctx.thermal.htsi > 80 and ctx.mortality.risk_score > 75,
                 severity="CRITICAL",
                 reason_code="SEVERE_THERMAL_AND_MORTALITY_RISK",
+                condition_message="Demo critical risk.",
                 recommended_action="Issue immediate targeted warnings.",
                 priority=100,
                 is_demo_rule=True
@@ -50,6 +51,7 @@ class TestWardFilter(unittest.TestCase):
                 condition=lambda ctx: ctx.info_pool.elderly_fraction > 0.20,
                 severity="HIGH",
                 reason_code="HIGH_ELDERLY_VULNERABILITY",
+                condition_message="Demo high risk.",
                 recommended_action="Prioritize elderly outreach.",
                 priority=50,
                 is_demo_rule=True

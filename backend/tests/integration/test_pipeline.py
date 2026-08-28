@@ -10,6 +10,7 @@ from backend.wiring.wire1 import process_location
 from backend.wiring.wire2 import get_recommendation
 from datalake.core.cache_manager import DATA_DIR
 from backend.wiring.ward_context_store.store import WardContextStore
+from backend.data_acquisition.schemas import CanonicalAcquiredData
 
 class TestIntegrationPipeline(unittest.TestCase):
     @classmethod
@@ -68,7 +69,7 @@ class TestIntegrationPipeline(unittest.TestCase):
         self.assertEqual(ctx_001.context.mortality.calculation_status, "COMPUTED")
         
         # 3. Test Wire 2 (No re-computation)
-        with patch('backend.wiring.wire1.calculate_thermal_indices_batch') as mock_thermal:
+        with patch('backend.wiring.wire1.calculate_thermal_indices') as mock_thermal:
             recommendation = get_recommendation("WARD_002")
             
             # Wire 2 should NOT invoke thermal/mortality/etc.
@@ -80,10 +81,10 @@ class TestIntegrationPipeline(unittest.TestCase):
             self.assertIn("freshness", recommendation)
             self.assertIn("generated_timestamp", recommendation["freshness"])
 
-    def test_partial_failure_propagation(self):
+    def test_global_failure_propagation(self):
         """
         Verify that failing Info Pool source (e.g. invalid location) does not crash,
-        and results in INSUFFICIENT_DATA while preserving architecture.
+        and results in empty list while preserving architecture.
         """
         # Run with an unknown location to trigger Data Lake failure
         ward_results = process_location("UNKNOWN_LOCATION")
@@ -92,29 +93,16 @@ class TestIntegrationPipeline(unittest.TestCase):
         # returns empty area_ids, resulting in an empty list. 
         self.assertEqual(len(ward_results), 0)
 
-        # Let's mock the adapter to return a failing atmospheric input for one ward
-        # and valid for another to test partial failure handling.
-        with patch('backend.thermalengine.data_acquisition.adapter.AtmosphericDataAcquisitionAdapter.acquire_for_location') as mock_acquire:
-            mock_acquire.return_value = [
-                {"area_id": "WARD_001", "timestamp": "2024-01-01T00:00:00Z", "temperature_c": 35.0, "relative_humidity_pct": 60.0},
-                {"area_id": "WARD_002", "timestamp": "2024-01-01T00:00:00Z", "temperature_c": None} # Failed/Insufficient
-            ]
+        # Let's mock the adapter to return a failing atmospheric input globally
+        with patch('backend.data_acquisition.adapter.GlobalDataAcquisitionAdapter.acquire_for_location') as mock_acquire:
+            mock_acquire.return_value = CanonicalAcquiredData(
+                location="Bhubaneswar", timestamp="2024-01-01T00:00:00Z", provider="failed"
+            )
             
             ward_results_partial = process_location("Bhubaneswar")
             
-            # Both should process (partial failure architecture)
-            self.assertEqual(len(ward_results_partial), 2)
-            
-            res_001 = next(r for r in ward_results_partial if r.area_id == "WARD_001")
-            res_002 = next(r for r in ward_results_partial if r.area_id == "WARD_002")
-            
-            # WARD_001 is valid
-            self.assertEqual(res_001.calculation_status, "COMPUTED")
-            self.assertIsNotNone(res_001.severity)
-            
-            # WARD_002 is INSUFFICIENT_DATA because thermal failed
-            self.assertEqual(res_002.calculation_status, "INSUFFICIENT_DATA")
-            self.assertEqual(res_002.context.thermal.calculation_status, "INSUFFICIENT_DATA")
+            # Since global acquisition fails, we return an empty list now
+            self.assertEqual(len(ward_results_partial), 0)
 
 if __name__ == '__main__':
     unittest.main()

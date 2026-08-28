@@ -15,6 +15,10 @@ class WardFilterInputValidationError(ValueError):
     """Raised when structured input violates the canonical data contract."""
     pass
 
+class MissingDataError(Exception):
+    """Raised by rule getters when a required field is None, allowing the engine to cleanly skip the rule."""
+    pass
+
 @dataclass
 class WardContext:
     """
@@ -56,6 +60,7 @@ class WardFilterResult:
     
     severity: Optional[str] = None
     message: Optional[str] = None
+    condition_message: Optional[str] = None
     recommended_actions: List[str] = field(default_factory=list)
     triggered_conditions: List[str] = field(default_factory=list)
     

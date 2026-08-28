@@ -3,6 +3,9 @@ HeatIQ Ward Filter — Gateway Boundary
 """
 from typing import Sequence, Union, Dict, Any, List, Optional
 from concurrent.futures import ThreadPoolExecutor
+import logging
+
+logger = logging.getLogger(__name__)
 
 from backend.thermalengine import ThermalOutput
 from backend.mortality import MortalityOutput, InfoPoolRecord, ResourcePoolRecord
@@ -156,6 +159,15 @@ class WardFilterGateway:
                 prediction = prediction_map.get(area_id)
 
                 if not mortality or not info or not resource:
+                    if None in [thermal, mortality, info, resource, prediction]:
+                        missing = []
+                        if not thermal: missing.append("thermal")
+                        if not mortality: missing.append("mortality")
+                        if not info: missing.append("info")
+                        if not resource: missing.append("resource")
+                        if not prediction: missing.append("prediction")
+                        logger.error(f"Missing records for {area_id}: {missing}")
+                    
                     if not allow_partial_failures:
                         raise WardFilterInputValidationError(f"Missing required records for area_id: {area_id}")
                     

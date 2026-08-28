@@ -26,7 +26,7 @@ class PartialFailingProvider:
         return res
 
 def test_atmospheric_provider_total_failure(monkeypatch):
-    from backend.thermalengine.data_acquisition.adapter import AtmosphericDataAcquisitionAdapter
+    from backend.data_acquisition.adapter import GlobalDataAcquisitionAdapter
     monkeypatch.setattr(AtmosphericDataAcquisitionAdapter, "__init__", lambda self: setattr(self, "provider", FailingProvider()))
     
     # Run wire1
@@ -38,7 +38,7 @@ def test_atmospheric_provider_total_failure(monkeypatch):
         assert "MISSING_REQUIRED_DATA" in r.triggered_conditions
 
 def test_partial_failure_isolation(monkeypatch):
-    from backend.thermalengine.data_acquisition.adapter import AtmosphericDataAcquisitionAdapter
+    from backend.data_acquisition.adapter import GlobalDataAcquisitionAdapter
     monkeypatch.setattr(AtmosphericDataAcquisitionAdapter, "__init__", lambda self: setattr(self, "provider", PartialFailingProvider()))
     
     results = process_location("Bhubaneswar")

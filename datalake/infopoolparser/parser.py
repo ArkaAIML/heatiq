@@ -58,6 +58,11 @@ def parse_info_pool(location: str) -> pd.DataFrame:
         if 'city' in df.columns:
             df = df[df['city'].str.lower() == location.lower()]
             
+        # TRIVIAL FIX: Filter Census data to specific location wards
+        # Reason: Census file lacks 'city' column but has 'Level' and 'Name'.
+        if 'Level' in df.columns and 'Name' in df.columns:
+            df = df[(df['Level'] == 'WARD') & (df['Name'].str.contains(location, case=False, na=False))]
+            
         if df.empty:
             continue
 
@@ -70,6 +75,12 @@ def parse_info_pool(location: str) -> pd.DataFrame:
         if "area_id" not in df.columns:
             logger.warning(f"Source {path} missing 'area_id' after mapping.")
             continue
+            
+        # TRIVIAL FIX: Normalize raw integer ward numbers to canonical HeatIQ area_id (WARD_XXX)
+        # Reason: Census provides 'Ward' as integers 1-60. HeatIQ requires WARD_001 format.
+        df["area_id"] = df["area_id"].apply(
+            lambda x: f"WARD_{int(x):03d}" if pd.notnull(x) and str(x).replace('.0', '').isdigit() else str(x)
+        )
             
         # Add missing canonical columns with pd.NA
         for col in CANONICAL_SCHEMA.keys():

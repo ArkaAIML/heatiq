@@ -5,7 +5,7 @@ Data Contract: v0.1  |  Component: ML Prediction Engine (§20)
 
 import json
 from dataclasses import dataclass, asdict
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 class PredictionOutputValidationError(ValueError):
     """Raised when structured prediction output violates the canonical data contract."""
@@ -20,11 +20,12 @@ class PredictionOutput:
     prediction_generated_at: str
     forecast_for: str
     forecast_horizon_days: int
-    thermal_hazard_score: float
-    predicted_max_utci_c: float
-    thermal_stress_level: str
     model_name: str
     model_version: str
+    thermal_hazard_score: Optional[float] = None
+    predicted_max_temperature_c: Optional[float] = None
+    predicted_max_utci_c: Optional[float] = None
+    thermal_stress_level: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert output to a JSON-serializable dictionary."""

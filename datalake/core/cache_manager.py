@@ -24,6 +24,8 @@ def _is_valid_parquet(path: Path) -> bool:
         df = pd.read_parquet(path)
         if "area_id" not in df.columns:
             return False
+        if df.empty:
+            return False
         return True
     except Exception:
         return False
