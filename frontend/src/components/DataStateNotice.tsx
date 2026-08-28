@@ -6,7 +6,12 @@ interface DataStateNoticeProps {
 
 export function DataStateNotice({ state, title, children }: DataStateNoticeProps) {
   return (
-    <div className="data-state" data-state={state} role={state === "error" ? "alert" : "status"}>
+    <div
+      className="data-state"
+      data-state={state}
+      role={state === "error" ? "alert" : "status"}
+      aria-atomic="true"
+    >
       <span className="data-state__icon" aria-hidden="true">
         {state === "loading" ? "…" : state === "error" ? "×" : "!"}
       </span>

@@ -12,6 +12,7 @@ describe("WardMap", () => {
 
     expect(screen.getByText("Demonstration ward layout")).toBeInTheDocument();
     expect(screen.getByText(/Not authoritative GIS boundaries/)).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Demo severity" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Ward 12, Very high/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: /Ward 27, Severe/ })).toHaveAttribute("aria-pressed", "false");
   });
@@ -31,5 +32,12 @@ describe("WardMap", () => {
     expect(onSelectWard).toHaveBeenNthCalledWith(1, "ward-12");
     expect(onSelectWard).toHaveBeenNthCalledWith(2, "ward-27");
     expect(onSelectWard).toHaveBeenNthCalledWith(3, "ward-34");
+  });
+
+  it("announces an explicit unavailable state when no ward geometry is supplied", () => {
+    render(<WardMap regions={[]} onSelectWard={() => undefined} />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Ward geometry unavailable");
+    expect(screen.queryByRole("button", { name: /Ward/ })).not.toBeInTheDocument();
   });
 });

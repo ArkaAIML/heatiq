@@ -109,6 +109,7 @@
   margin-top: 0.2rem;
   font-size: 0.8rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .status-badge {
@@ -177,6 +178,14 @@
   font-weight: 700;
 }
 
+.control-bar select:disabled { background: var(--paper-200); color: var(--ink-600); }
+.control-bar__help {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--ink-600);
+  font-size: 0.62rem;
+}
+
 .control-bar__readout {
   display: flex;
   flex-direction: column;
@@ -184,7 +193,7 @@
   gap: var(--space-1);
 }
 
-.control-bar__readout strong { font-size: 0.78rem; }
+.control-bar__readout strong { min-width: 0; font-size: 0.78rem; overflow-wrap: anywhere; }
 .control-bar button {
   min-width: 8rem;
   border: 0;
@@ -217,6 +226,13 @@
   padding: var(--space-6);
   border: 1px solid var(--border-strong);
   background: var(--paper-50);
+}
+
+.dashboard-message--inline {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .dashboard-grid {
@@ -312,6 +328,20 @@
 }
 
 .ward-map__ground { fill: var(--paper-200); }
+.ward-map__empty {
+  display: flex;
+  min-height: 18rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  background: var(--paper-200);
+  color: var(--ink-600);
+  text-align: center;
+}
+
+.ward-map__empty strong { color: var(--ink-900); text-transform: uppercase; }
 .ward-region { cursor: pointer; }
 .ward-region polygon {
   stroke: var(--ink-700);
@@ -360,7 +390,15 @@
 }
 
 .ward-map__legend strong { margin-right: auto; text-transform: uppercase; }
-.ward-map__legend span { display: inline-flex; align-items: center; gap: var(--space-1); }
+.ward-map__legend ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ward-map__legend li { display: inline-flex; align-items: center; gap: var(--space-1); }
 .ward-map__legend i { width: 0.7rem; height: 0.7rem; border: 1px solid var(--ink-700); }
 .ward-map__legend i[data-severity="no-data"] { background: var(--paper-300); }
 .ward-map__legend i[data-severity="moderate"] { background: var(--green-100); }
@@ -435,9 +473,9 @@
 .data-value { min-height: 6.75rem; padding: var(--space-4); border-right: 1px solid var(--paper-300); border-bottom: 1px solid var(--paper-300); }
 .data-value dt { color: var(--ink-600); font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
 .data-value__reading { margin-top: var(--space-3); font-family: var(--font-mono); font-size: 1.4rem; font-weight: 800; }
-.data-value__reading.is-unavailable { color: var(--ink-500); font-family: var(--font-sans); font-size: 0.85rem; }
+.data-value__reading.is-unavailable { color: var(--ink-600); font-family: var(--font-sans); font-size: 0.85rem; }
 .data-value__unit { font-size: 0.72rem; }
-.data-value__detail { margin-top: var(--space-2); color: var(--ink-500); font-size: 0.65rem; }
+.data-value__detail { margin-top: var(--space-2); color: var(--ink-600); font-size: 0.65rem; overflow-wrap: anywhere; }
 .data-value[data-state="demonstration"] { box-shadow: inset 3px 0 0 var(--saffron-600); }
 .data-value[data-state="unavailable"] { background: var(--paper-100); }
 
@@ -507,7 +545,21 @@
   .control-bar { grid-template-columns: 1.4fr 1fr 1fr; }
   .control-bar button { grid-column: 1 / -1; min-height: 2.5rem; border-top: 1px solid var(--border); border-left: 0; }
   .panel-map,
-  .panel-ward-brief,
+  .panel-ward-brief { grid-column: 1 / -1; }
+  .panel-weather,
+  .panel-thermal,
+  .panel-forecast,
+  .panel-danger,
+  .panel-context,
+  .panel-advisory,
+  .panel-citizen { grid-column: span 6; }
+}
+
+@media (max-width: 820px) {
+  .system-header__main { flex-direction: column; }
+  .system-metadata { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .system-metadata > div { border-top: 0; border-left: 1px solid var(--border); }
+  .system-metadata > div:first-child { border-left: 0; }
   .panel-weather,
   .panel-thermal,
   .panel-forecast,
@@ -530,7 +582,9 @@
   .demo-notice { align-items: stretch; }
   .system-header__utility span,
   .demo-notice > * { width: 100%; white-space: normal; }
-  .system-metadata { width: 100%; }
+  .system-metadata { grid-template-columns: 1fr; }
+  .system-metadata > div { border-top: 1px solid var(--border); border-left: 0; }
+  .system-metadata > div:first-child { border-top: 0; }
   .dashboard-container,
   .system-header__main { width: min(100% - 1rem, var(--content-width)); }
   .control-bar { grid-template-columns: 1fr; }
@@ -556,6 +610,7 @@
   .ward-map__notice span { text-align: left; }
   .ward-map__canvas { min-height: 14rem; }
   .ward-map__legend strong { width: 100%; }
+  .ward-map__legend ul { width: 100%; }
   .metric-grid--three { grid-template-columns: 1fr; }
   .danger-window { grid-template-columns: 1fr; }
   .danger-window > div { border-top: 1px solid var(--border-strong); border-left: 0; }

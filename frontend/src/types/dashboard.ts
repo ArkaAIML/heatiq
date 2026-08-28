@@ -129,4 +129,4 @@ export interface DashboardSnapshot {
 export type DashboardRequestState =
   | { status: "loading"; previousSnapshot?: DashboardSnapshot }
   | { status: "ready"; snapshot: DashboardSnapshot }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string; previousSnapshot?: DashboardSnapshot };

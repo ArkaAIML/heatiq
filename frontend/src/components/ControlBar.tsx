@@ -24,14 +24,23 @@ export function ControlBar({
         <select
           id="ward-select"
           value={ward}
+          disabled={wardOptions.length === 0 || isLoading}
+          aria-describedby="ward-select-help"
           onChange={(event) => onWardChange(event.target.value)}
         >
-          {wardOptions.map((option) => (
-            <option key={option.wardId} value={option.wardId}>
-              {option.wardName} · {option.wardId === "all" ? "Demo view" : "Demo selection"}
-            </option>
-          ))}
+          {wardOptions.length === 0 ? (
+            <option value="all">No demonstration wards available</option>
+          ) : (
+            wardOptions.map((option) => (
+              <option key={option.wardId} value={option.wardId}>
+                {option.wardName} · {option.wardId === "all" ? "Demo view" : "Demo selection"}
+              </option>
+            ))
+          )}
         </select>
+        <span className="control-bar__help" id="ward-select-help">
+          Demonstration administrative selection
+        </span>
       </div>
       <div className="control-bar__readout">
         <span className="control-bar__label">Data source</span>
@@ -41,8 +50,8 @@ export function ControlBar({
         <span className="control-bar__label">Refresh cycle</span>
         <strong>Manual · Demo repository</strong>
       </div>
-      <button type="button" onClick={onRefresh} disabled={isLoading}>
-        {isLoading ? "Loading…" : "Refresh data"}
+      <button type="button" onClick={onRefresh} disabled={isLoading} aria-busy={isLoading}>
+        {isLoading ? "Refreshing data…" : "Refresh data"}
       </button>
     </section>
   );

@@ -41,7 +41,7 @@ export function ResponsePanels({ snapshot }: ResponsePanelsProps) {
           </DataStateNotice>
         )}
         <p className="panel-note"><strong>{dangerousHours.sourceLabel}.</strong> {dangerousHours.note}</p>
-        <div className="timeline-placeholder is-populated" aria-label="Demonstration dangerous-hours timeline">
+        <div className="timeline-placeholder" aria-label="Demonstration dangerous-hours timeline">
           {Array.from({ length: 8 }, (_, index) => (
             <span key={index} className={index >= 2 && index <= 5 ? "is-warning" : ""} />
           ))}

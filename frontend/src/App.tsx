@@ -53,7 +53,13 @@ function App({ repository = mockDashboardRepository }: AppProps) {
       (error: unknown) => {
         if (active) {
           const message = error instanceof Error ? error.message : "Unknown dashboard error";
-          setRequest({ status: "error", message });
+          setRequest((current) => ({
+            status: "error",
+            message,
+            previousSnapshot: current.status === "loading"
+              ? current.previousSnapshot
+              : undefined,
+          }));
         }
       },
     );
@@ -71,7 +77,9 @@ function App({ repository = mockDashboardRepository }: AppProps) {
     ? request.snapshot
     : request.status === "loading"
       ? request.previousSnapshot ?? null
-      : null;
+      : request.previousSnapshot ?? null;
+  const isLoading = request.status === "loading";
+  const isRefreshing = isLoading && snapshot !== null;
   const headerState = request.status === "loading"
     ? "loading"
     : request.status === "error"
@@ -89,12 +97,17 @@ function App({ repository = mockDashboardRepository }: AppProps) {
         state={headerState}
       />
 
-      <main id="main-content" className="dashboard-container">
+      <main
+        id="main-content"
+        className="dashboard-container"
+        tabIndex={-1}
+        aria-busy={isLoading}
+      >
         <ControlBar
           ward={ward}
           onWardChange={setWard}
           onRefresh={refresh}
-          isLoading={request.status === "loading"}
+          isLoading={isLoading}
           sourceLabel={snapshot?.sourceLabel ?? "HeatIQ demonstration repository"}
           wardOptions={repository.wardOptions}
         />
@@ -104,18 +117,25 @@ function App({ repository = mockDashboardRepository }: AppProps) {
           <span>All populated values are non-live demonstration data. Missing scientific outputs remain explicitly unavailable.</span>
         </aside>
 
-        {request.status === "loading" ? (
-          <div className="dashboard-message">
-            <DataStateNotice state="loading" title="Loading dashboard">
-              Retrieving the selected demonstration snapshot.
+        {isLoading ? (
+          <div className={isRefreshing ? "dashboard-message dashboard-message--inline" : "dashboard-message"}>
+            <DataStateNotice
+              state="loading"
+              title={isRefreshing ? "Refreshing dashboard" : "Loading dashboard"}
+            >
+              {isRefreshing
+                ? "The previous demonstration snapshot remains visible until refresh completes."
+                : "Retrieving the selected demonstration snapshot."}
             </DataStateNotice>
           </div>
         ) : null}
 
         {request.status === "error" ? (
-          <div className="dashboard-message">
+          <div className={snapshot ? "dashboard-message dashboard-message--inline" : "dashboard-message"}>
             <DataStateNotice state="error" title="Unable to load dashboard">
-              {request.message}. Use Refresh data to try again.
+              {request.message}. {snapshot
+                ? "The previous demonstration snapshot remains visible; use Refresh data to try again."
+                : "Use Refresh data to try again."}
             </DataStateNotice>
           </div>
         ) : null}

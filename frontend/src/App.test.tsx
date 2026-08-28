@@ -1,8 +1,12 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import App from "./App";
-import { createMockDashboardRepository } from "./services/mockDashboardRepository";
+import type { DashboardRepository } from "./services/dashboardRepository";
+import {
+  buildMockDashboardSnapshot,
+  createMockDashboardRepository,
+} from "./services/mockDashboardRepository";
 
 const fastRepository = createMockDashboardRepository({ delayMs: 0 });
 
@@ -10,8 +14,10 @@ describe("HeatIQ control-room dashboard", () => {
   it("renders loading and then clearly labelled demonstration data", async () => {
     render(<App repository={fastRepository} />);
 
-    expect(screen.getByText("Loading dashboard")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Loading dashboard");
+    expect(screen.getByRole("main")).toHaveAttribute("aria-busy", "true");
     expect(await screen.findByText("38.4")).toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveAttribute("aria-busy", "false");
     expect(screen.getByText("Demonstration interface")).toBeInTheDocument();
     expect(screen.getAllByText(/Demo data|Demonstration data/).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Unavailable").length).toBeGreaterThan(0);
@@ -24,6 +30,7 @@ describe("HeatIQ control-room dashboard", () => {
     expect(screen.getByText("target_temperature_max_c_d1")).toBeInTheDocument();
     expect(screen.getAllByText("Linear Regression v1").length).toBeGreaterThan(0);
     expect(screen.getByText("D+1 maximum air temperature")).toBeInTheDocument();
+    expect(screen.getByText("degC · 1-day horizon · Demo output")).toBeInTheDocument();
     expect(screen.getByText("11:00–15:00")).toBeInTheDocument();
     expect(screen.getAllByText(/not derived from the D\+1 model/)).toHaveLength(2);
     expect(screen.queryByText("UTCI prediction")).not.toBeInTheDocument();
@@ -90,6 +97,89 @@ describe("HeatIQ control-room dashboard", () => {
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent("Unable to load dashboard");
     expect(alert).toHaveTextContent("Demonstration repository failed to load");
+  });
+
+  it("announces refresh progress and keeps the previous demo snapshot visible", async () => {
+    const initialSnapshot = buildMockDashboardSnapshot("ward-12");
+    const refreshedSnapshot = {
+      ...initialSnapshot,
+      temperatureForecast: {
+        ...initialSnapshot.temperatureForecast,
+        prediction: {
+          ...initialSnapshot.temperatureForecast.prediction,
+          value: 39.1,
+        },
+      },
+    };
+    let resolveRefresh: ((snapshot: typeof refreshedSnapshot) => void) | undefined;
+    const repository: DashboardRepository = {
+      wardOptions: fastRepository.wardOptions,
+      getSnapshot: vi.fn()
+        .mockResolvedValueOnce(initialSnapshot)
+        .mockImplementationOnce(() => new Promise((resolve) => {
+          resolveRefresh = resolve;
+        })),
+    };
+
+    render(<App repository={repository} />);
+    await screen.findByText("38.4");
+    fireEvent.click(screen.getByRole("button", { name: "Refresh data" }));
+
+    expect(await screen.findByText("Refreshing dashboard")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Refreshing data…" })).toBeDisabled();
+    expect(screen.getByText("38.4")).toBeInTheDocument();
+
+    await act(async () => {
+      resolveRefresh?.(refreshedSnapshot);
+    });
+
+    expect(await screen.findByText("39.1")).toBeInTheDocument();
+    expect(screen.queryByText("Refreshing dashboard")).not.toBeInTheDocument();
+  });
+
+  it("retains the labelled previous snapshot when a refresh fails", async () => {
+    const snapshot = buildMockDashboardSnapshot("ward-12");
+    const repository: DashboardRepository = {
+      wardOptions: fastRepository.wardOptions,
+      getSnapshot: vi.fn()
+        .mockResolvedValueOnce(snapshot)
+        .mockRejectedValueOnce(new Error("Refresh demonstration failed")),
+    };
+
+    render(<App repository={repository} />);
+    await screen.findByText("38.4");
+    fireEvent.click(screen.getByRole("button", { name: "Refresh data" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Refresh demonstration failed");
+    expect(alert).toHaveTextContent("previous demonstration snapshot remains visible");
+    expect(screen.getByText("38.4")).toBeInTheDocument();
+  });
+
+  it("renders empty ward data explicitly without enabling an empty selector", async () => {
+    const emptySnapshot = {
+      ...buildMockDashboardSnapshot("all"),
+      wardRegions: [],
+    };
+    const repository: DashboardRepository = {
+      wardOptions: [],
+      getSnapshot: vi.fn().mockResolvedValue(emptySnapshot),
+    };
+
+    render(<App repository={repository} />);
+
+    expect(await screen.findByText("Ward geometry unavailable")).toBeInTheDocument();
+    expect(screen.getByLabelText("Ward / administrative area")).toBeDisabled();
+    expect(screen.getByRole("option", { name: "No demonstration wards available" })).toBeInTheDocument();
+  });
+
+  it("keeps unavailable scientific outputs explicit", async () => {
+    render(<App repository={fastRepository} />);
+
+    const thermalPanel = await screen.findByRole("region", { name: "Thermal Stress" });
+    expect(within(thermalPanel).getByText("WBGT")).toBeInTheDocument();
+    expect(within(thermalPanel).getByText("Unavailable")).toBeInTheDocument();
+    expect(within(thermalPanel).getByText(/not supplied by the demonstration feed/)).toBeInTheDocument();
   });
 
   it("associates every dashboard region with a unique heading", async () => {
