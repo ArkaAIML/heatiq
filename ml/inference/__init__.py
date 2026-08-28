@@ -11,6 +11,7 @@ from ml.inference.artifact import (
     save_model_artifact,
     validate_artifact_contract,
 )
+from ml.inference.features import build_inference_feature_row
 from ml.inference.predict import ModelMetadata, PredictionResult, predict_one
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     "ModelArtifact",
     "ModelMetadata",
     "PredictionResult",
+    "build_inference_feature_row",
     "load_model_artifact",
     "predict_one",
     "save_model_artifact",
