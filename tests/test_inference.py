@@ -29,6 +29,7 @@ class InferenceTests(unittest.TestCase):
             feature_names=("feature_a", "feature_b"),
             forecast_horizon_days=1,
             target_name="target_temperature_max_c_d1",
+            target_unit="degC",
         )
         self.feature_row = pd.DataFrame(
             {"feature_a": [5.0], "feature_b": [6.0]}
@@ -51,6 +52,7 @@ class InferenceTests(unittest.TestCase):
         self.assertEqual(result.forecast_horizon_days, 1)
         self.assertEqual(result.feature_date, feature_date)
         self.assertEqual(result.target_name, "target_temperature_max_c_d1")
+        self.assertEqual(result.target_unit, "degC")
 
     def test_fitted_xgboost_uses_the_same_interface(self) -> None:
         estimator = XGBRegressor(
@@ -67,6 +69,7 @@ class InferenceTests(unittest.TestCase):
             feature_names=("feature_a", "feature_b"),
             forecast_horizon_days=1,
             target_name="target_temperature_max_c_d1",
+            target_unit="degC",
         )
 
         result = predict_one(estimator, self.feature_row, metadata)
@@ -148,6 +151,7 @@ class InferenceTests(unittest.TestCase):
             ModelMetadata("model", ("feature_a",), 0),
             ModelMetadata("model", ("feature_a",), True),
             ModelMetadata("model", ("feature_a",), 1, target_name=""),
+            ModelMetadata("model", ("feature_a",), 1, target_unit=""),
         )
         for metadata in invalid_metadata:
             with self.subTest(metadata=metadata), self.assertRaises(ValueError):
