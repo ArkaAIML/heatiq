@@ -21,6 +21,26 @@ export interface DashboardLocation {
   state: string;
 }
 
+export type WardSeverityState =
+  | "no-data"
+  | "moderate"
+  | "high"
+  | "very-high"
+  | "severe";
+
+export interface WardOption {
+  wardId: string;
+  wardName: string;
+}
+
+export interface WardRegion extends WardOption {
+  severity: WardSeverityState;
+  selected: boolean;
+  points: string;
+  labelX: number;
+  labelY: number;
+}
+
 export interface CurrentWeather {
   observedAt: string;
   airTemperature: PresentedValue<number>;
@@ -96,6 +116,7 @@ export interface DashboardSnapshot {
   freshness: FreshnessState;
   generatedAt: string;
   location: DashboardLocation;
+  wardRegions: WardRegion[];
   currentWeather: CurrentWeather;
   thermalStress: ThermalStress;
   temperatureForecast: TemperatureForecast;
@@ -106,6 +127,6 @@ export interface DashboardSnapshot {
 }
 
 export type DashboardRequestState =
-  | { status: "loading" }
+  | { status: "loading"; previousSnapshot?: DashboardSnapshot }
   | { status: "ready"; snapshot: DashboardSnapshot }
   | { status: "error"; message: string };

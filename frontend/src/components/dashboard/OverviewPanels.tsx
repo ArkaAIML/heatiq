@@ -2,12 +2,14 @@ import type { DashboardSnapshot } from "../../types/dashboard";
 import { DataStateNotice } from "../DataStateNotice";
 import { SectionPanel } from "../SectionPanel";
 import { StatusBadge } from "../StatusBadge";
+import { WardMap } from "../WardMap";
 
 interface OverviewPanelsProps {
   snapshot: DashboardSnapshot;
+  onSelectWard: (wardId: string) => void;
 }
 
-export function OverviewPanels({ snapshot }: OverviewPanelsProps) {
+export function OverviewPanels({ snapshot, onSelectWard }: OverviewPanelsProps) {
   const { location, wardContext } = snapshot;
 
   return (
@@ -16,23 +18,10 @@ export function OverviewPanels({ snapshot }: OverviewPanelsProps) {
         number="01"
         title="Ward GIS Overview"
         eyebrow="Spatial operations"
-        status={<StatusBadge tone="unavailable">Layer unavailable</StatusBadge>}
+        status={<StatusBadge>Demo geometry</StatusBadge>}
         className="panel-map"
       >
-        <div className="map-placeholder" role="img" aria-label="GIS ward map integration placeholder">
-          <div className="map-placeholder__grid" aria-hidden="true" />
-          <div className="map-placeholder__message">
-            <span className="map-placeholder__crosshair" aria-hidden="true">＋</span>
-            <strong>Ward boundary layer not loaded</strong>
-            <p>Integration surface reserved for validated GeoJSON and severity overlays.</p>
-          </div>
-          <div className="map-placeholder__legend" aria-label="Future severity legend">
-            <span>Future severity legend</span>
-            <i className="legend-swatch is-neutral" /> No data
-            <i className="legend-swatch is-amber" /> Warning
-            <i className="legend-swatch is-red" /> Severe
-          </div>
-        </div>
+        <WardMap regions={snapshot.wardRegions} onSelectWard={onSelectWard} />
       </SectionPanel>
 
       <SectionPanel

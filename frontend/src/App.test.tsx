@@ -25,20 +25,46 @@ describe("HeatIQ control-room dashboard", () => {
     expect(screen.getAllByText("Linear Regression v1").length).toBeGreaterThan(0);
     expect(screen.getByText("D+1 maximum air temperature")).toBeInTheDocument();
     expect(screen.getByText("11:00–15:00")).toBeInTheDocument();
-    expect(screen.getByText(/not derived from the D\+1 model/)).toBeInTheDocument();
+    expect(screen.getAllByText(/not derived from the D\+1 model/)).toHaveLength(2);
     expect(screen.queryByText("UTCI prediction")).not.toBeInTheDocument();
     expect(screen.queryByText("Heat-risk score")).not.toBeInTheDocument();
   });
 
   it("updates the selected demo ward through the repository", async () => {
     render(<App repository={fastRepository} />);
-    await screen.findByText("All wards · Demo data");
+    await screen.findByText("Ward 12 · Demo data");
 
-    fireEvent.change(screen.getByLabelText("Ward / administrative area"), {
-      target: { value: "ward-12" },
+    const selector = screen.getByLabelText("Ward / administrative area");
+    expect(selector).toHaveValue("ward-12");
+    expect(screen.getByRole("button", { name: /Ward 12, very high/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    fireEvent.change(selector, {
+      target: { value: "ward-27" },
     });
 
-    expect(await screen.findByText("Ward 12 · Demo data")).toBeInTheDocument();
+    expect(await screen.findByText("Ward 27 · Demo data")).toBeInTheDocument();
+    expect(selector).toHaveValue("ward-27");
+    expect(screen.getByRole("button", { name: /Ward 27, severe/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("synchronizes map selection back to the ward selector", async () => {
+    render(<App repository={fastRepository} />);
+    await screen.findByText("Ward 12 · Demo data");
+
+    fireEvent.click(screen.getByRole("button", { name: /Ward 34, no data/i }));
+
+    expect(await screen.findByText("Ward 34 · Demo data")).toBeInTheDocument();
+    expect(screen.getByLabelText("Ward / administrative area")).toHaveValue("ward-34");
+    expect(screen.getByRole("button", { name: /Ward 34, no data/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("renders stale snapshots as unsafe to treat as current", async () => {

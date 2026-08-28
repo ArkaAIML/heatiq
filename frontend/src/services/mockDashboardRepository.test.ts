@@ -14,6 +14,12 @@ describe("mock dashboard repository", () => {
     expect(snapshot.dataMode).toBe("demonstration");
     expect(snapshot.sourceLabel).toContain("demonstration");
     expect(snapshot.location.wardName).toBe("Ward 12");
+    expect(repository.wardOptions).toHaveLength(6);
+    expect(snapshot.wardRegions).toHaveLength(5);
+    expect(snapshot.wardRegions.find((region) => region.wardId === "ward-12")).toMatchObject({
+      severity: "very-high",
+      selected: true,
+    });
     expect(snapshot.thermalStress.wbgt).toMatchObject({
       value: null,
       state: "unavailable",

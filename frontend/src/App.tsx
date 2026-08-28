@@ -27,13 +27,22 @@ function formatUpdatedAt(value: string): string {
 }
 
 function App({ repository = mockDashboardRepository }: AppProps) {
-  const [ward, setWard] = useState("all");
+  const defaultWard = repository.wardOptions.find((option) => option.wardId === "ward-12")
+    ?? repository.wardOptions[0];
+  const [ward, setWard] = useState(defaultWard?.wardId ?? "all");
   const [refreshSequence, setRefreshSequence] = useState(0);
   const [request, setRequest] = useState<DashboardRequestState>({ status: "loading" });
 
   useEffect(() => {
     let active = true;
-    setRequest({ status: "loading" });
+    setRequest((current) => ({
+      status: "loading",
+      previousSnapshot: current.status === "ready"
+        ? current.snapshot
+        : current.status === "loading"
+          ? current.previousSnapshot
+          : undefined,
+    }));
 
     void repository.getSnapshot(ward).then(
       (snapshot) => {
@@ -58,7 +67,11 @@ function App({ repository = mockDashboardRepository }: AppProps) {
     setRefreshSequence((sequence) => sequence + 1);
   }, []);
 
-  const snapshot = request.status === "ready" ? request.snapshot : null;
+  const snapshot = request.status === "ready"
+    ? request.snapshot
+    : request.status === "loading"
+      ? request.previousSnapshot ?? null
+      : null;
   const headerState = request.status === "loading"
     ? "loading"
     : request.status === "error"
@@ -83,6 +96,7 @@ function App({ repository = mockDashboardRepository }: AppProps) {
           onRefresh={refresh}
           isLoading={request.status === "loading"}
           sourceLabel={snapshot?.sourceLabel ?? "HeatIQ demonstration repository"}
+          wardOptions={repository.wardOptions}
         />
 
         <aside className="demo-notice" aria-label="Demonstration data notice">
@@ -114,7 +128,7 @@ function App({ repository = mockDashboardRepository }: AppProps) {
 
         {snapshot ? (
           <div className="dashboard-grid">
-            <OverviewPanels snapshot={snapshot} />
+            <OverviewPanels snapshot={snapshot} onSelectWard={setWard} />
             <ConditionsPanels snapshot={snapshot} />
             <ResponsePanels snapshot={snapshot} />
           </div>

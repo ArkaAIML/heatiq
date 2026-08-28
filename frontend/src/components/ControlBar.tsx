@@ -1,9 +1,12 @@
+import type { WardOption } from "../types/dashboard";
+
 interface ControlBarProps {
   ward: string;
   onWardChange: (ward: string) => void;
   onRefresh: () => void;
   isLoading: boolean;
   sourceLabel: string;
+  wardOptions: readonly WardOption[];
 }
 
 export function ControlBar({
@@ -12,6 +15,7 @@ export function ControlBar({
   onRefresh,
   isLoading,
   sourceLabel,
+  wardOptions,
 }: ControlBarProps) {
   return (
     <section className="control-bar" aria-label="Dashboard controls">
@@ -22,9 +26,11 @@ export function ControlBar({
           value={ward}
           onChange={(event) => onWardChange(event.target.value)}
         >
-          <option value="all">All wards · Demo view</option>
-          <option value="ward-12">Ward 12 · Demo selection</option>
-          <option value="ward-27">Ward 27 · Demo selection</option>
+          {wardOptions.map((option) => (
+            <option key={option.wardId} value={option.wardId}>
+              {option.wardName} · {option.wardId === "all" ? "Demo view" : "Demo selection"}
+            </option>
+          ))}
         </select>
       </div>
       <div className="control-bar__readout">
