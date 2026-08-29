@@ -70,8 +70,9 @@ function App({ repository = mockDashboardRepository }: AppProps) {
   }, [refreshSequence, repository, ward]);
 
   const refresh = useCallback(() => {
+    repository.refresh?.();
     setRefreshSequence((sequence) => sequence + 1);
-  }, []);
+  }, [repository]);
 
   const snapshot = request.status === "ready"
     ? request.snapshot
@@ -86,14 +87,18 @@ function App({ repository = mockDashboardRepository }: AppProps) {
       ? "error"
       : snapshot?.freshness === "stale"
         ? "stale"
-        : "demonstration";
+        : snapshot?.dataMode === "live"
+          ? "live"
+          : "demonstration";
 
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">Skip to dashboard content</a>
       <SystemHeader
-        operationalArea={snapshot ? `${snapshot.location.city} · Demonstration` : "Bhubaneswar · Demonstration"}
-        updatedLabel={snapshot ? formatUpdatedAt(snapshot.generatedAt) : "Awaiting demo data"}
+        operationalArea={snapshot
+          ? `${snapshot.location.city} · ${snapshot.dataMode === "live" ? "Backend data" : "Demonstration"}`
+          : "Bhubaneswar"}
+        updatedLabel={snapshot ? formatUpdatedAt(snapshot.generatedAt) : "Awaiting data"}
         state={headerState}
       />
 
@@ -110,12 +115,15 @@ function App({ repository = mockDashboardRepository }: AppProps) {
           isLoading={isLoading}
           sourceLabel={snapshot?.sourceLabel ?? "HeatIQ demonstration repository"}
           wardOptions={repository.wardOptions}
+          dataMode={snapshot?.dataMode ?? "demonstration"}
         />
 
-        <aside className="demo-notice" aria-label="Demonstration data notice">
-          <strong>Demonstration interface</strong>
-          <span>All populated values are non-live demonstration data. Missing scientific outputs remain explicitly unavailable.</span>
-        </aside>
+        {snapshot?.dataMode !== "live" ? (
+          <aside className="demo-notice" aria-label="Demonstration data notice">
+            <strong>Demonstration interface</strong>
+            <span>All populated values are non-live demonstration data. Missing scientific outputs remain explicitly unavailable.</span>
+          </aside>
+        ) : null}
 
         {isLoading ? (
           <div className={isRefreshing ? "dashboard-message dashboard-message--inline" : "dashboard-message"}>
@@ -124,8 +132,8 @@ function App({ repository = mockDashboardRepository }: AppProps) {
               title={isRefreshing ? "Refreshing dashboard" : "Loading dashboard"}
             >
               {isRefreshing
-                ? "The previous demonstration snapshot remains visible until refresh completes."
-                : "Retrieving the selected demonstration snapshot."}
+                ? "The previous snapshot remains visible until refresh completes."
+                : "Retrieving the selected dashboard snapshot."}
             </DataStateNotice>
           </div>
         ) : null}
@@ -134,7 +142,7 @@ function App({ repository = mockDashboardRepository }: AppProps) {
           <div className={snapshot ? "dashboard-message dashboard-message--inline" : "dashboard-message"}>
             <DataStateNotice state="error" title="Unable to load dashboard">
               {request.message}. {snapshot
-                ? "The previous demonstration snapshot remains visible; use Refresh data to try again."
+                ? `The previous ${snapshot.dataMode === "demonstration" ? "demonstration " : ""}snapshot remains visible; use Refresh data to try again.`
                 : "Use Refresh data to try again."}
             </DataStateNotice>
           </div>

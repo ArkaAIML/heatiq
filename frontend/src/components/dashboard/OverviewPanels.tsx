@@ -11,6 +11,7 @@ interface OverviewPanelsProps {
 
 export function OverviewPanels({ snapshot, onSelectWard }: OverviewPanelsProps) {
   const { location, wardContext } = snapshot;
+  const isLive = snapshot.dataMode === "live";
 
   return (
     <>
@@ -32,17 +33,19 @@ export function OverviewPanels({ snapshot, onSelectWard }: OverviewPanelsProps) 
         className="panel-ward-brief"
       >
         <dl className="summary-list">
-          <div><dt>Selection</dt><dd>{location.wardName} · Demo data</dd></div>
+          <div><dt>Selection</dt><dd>{location.wardName} · {isLive ? "Backend data" : "Demo data"}</dd></div>
           <div><dt>Heat severity</dt><dd>{wardContext.heatSeverity.value ?? "Unavailable"}</dd></div>
-          <div><dt>Observation area</dt><dd>{location.city}, {location.district}</dd></div>
-          <div><dt>Data freshness</dt><dd>{snapshot.freshness === "stale" ? "Stale" : "Demo snapshot"}</dd></div>
+          <div><dt>Observation area</dt><dd>{location.district === "Unavailable" ? location.city : `${location.city}, ${location.district}`}</dd></div>
+          <div><dt>Data freshness</dt><dd>{snapshot.freshness === "stale" ? "Stale" : isLive ? "Current backend snapshot" : "Demo snapshot"}</dd></div>
         </dl>
-        <DataStateNotice
-          state={snapshot.freshness === "stale" ? "stale" : "demonstration"}
-          title={snapshot.freshness === "stale" ? "Stale demonstration data" : "Demonstration data"}
-        >
-          Values are illustrative and are not connected to a live ward feed.
-        </DataStateNotice>
+        {!isLive ? (
+          <DataStateNotice
+            state={snapshot.freshness === "stale" ? "stale" : "demonstration"}
+            title={snapshot.freshness === "stale" ? "Stale demonstration data" : "Demonstration data"}
+          >
+            Values are illustrative and are not connected to a live ward feed.
+          </DataStateNotice>
+        ) : null}
       </SectionPanel>
     </>
   );

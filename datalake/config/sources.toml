@@ -1,0 +1,25 @@
+[infopool]
+active_sources = ["BBSR_CENSUS_2011"]
+
+[infopool.sources.BBSR_CENSUS_2011]
+type = "local"
+format = "excel"
+path = "DDW_PCA2117_2011_MDDS with UI.xlsx"
+priority = 1
+[infopool.sources.BBSR_CENSUS_2011.mapping]
+Ward = "area_id"
+TOT_P = "population"
+P_06 = "child_fraction"
+MAINWORK_P = "outdoor_worker_fraction"
+
+[resourcepool]
+active_sources = ["MOCK_RESOURCES"]
+
+[resourcepool.sources.MOCK_RESOURCES]
+type = "local"
+format = "csv"
+path = "datalake/data/bhubaneswar_mock_resources.csv"
+priority = 1
+[resourcepool.sources.MOCK_RESOURCES.mapping]
+# Columns in the CSV map exactly to the canonical schema
+

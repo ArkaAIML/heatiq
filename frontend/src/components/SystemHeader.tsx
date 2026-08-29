@@ -3,17 +3,22 @@ import { StatusBadge } from "./StatusBadge";
 interface SystemHeaderProps {
   operationalArea: string;
   updatedLabel: string;
-  state: "loading" | "demonstration" | "stale" | "error";
+  state: "loading" | "live" | "demonstration" | "stale" | "error";
 }
 
 export function SystemHeader({ operationalArea, updatedLabel, state }: SystemHeaderProps) {
   const statusLabel = {
     loading: "Loading",
+    live: "Backend connected",
     demonstration: "Demo mode",
     stale: "Stale demo",
     error: "Data error",
   }[state];
-  const tone = state === "error" || state === "stale" ? "warning" : "unavailable";
+  const tone = state === "error" || state === "stale"
+    ? "warning"
+    : state === "live"
+      ? "active"
+      : "unavailable";
 
   return (
     <header className="system-header">

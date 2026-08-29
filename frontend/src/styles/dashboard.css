@@ -402,10 +402,13 @@
 }
 
 .ward-region[data-severity="no-data"] polygon { fill: var(--paper-300); }
+.ward-region[data-severity="low"] polygon { fill: var(--green-100); }
 .ward-region[data-severity="moderate"] polygon { fill: var(--green-100); }
 .ward-region[data-severity="high"] polygon { fill: var(--amber-100); }
 .ward-region[data-severity="very-high"] polygon { fill: var(--saffron-100); }
 .ward-region[data-severity="severe"] polygon { fill: var(--red-100); }
+.ward-region[data-severity="critical"] polygon { fill: var(--red-100); }
+.ward-region[data-severity="extreme"] polygon { fill: var(--red-100); }
 .ward-map__canvas[data-layer="heat-intensity"] .ward-region polygon {
   fill: rgba(251, 250, 246, 0.1);
 }
@@ -447,10 +450,13 @@
 .ward-map__legend li { display: inline-flex; align-items: center; gap: var(--space-1); }
 .ward-map__legend i { width: 0.7rem; height: 0.7rem; border: 1px solid var(--ink-700); }
 .ward-map__legend i[data-severity="no-data"] { background: var(--paper-300); }
+.ward-map__legend i[data-severity="low"] { background: var(--green-100); }
 .ward-map__legend i[data-severity="moderate"] { background: var(--green-100); }
 .ward-map__legend i[data-severity="high"] { background: var(--amber-100); }
 .ward-map__legend i[data-severity="very-high"] { background: var(--saffron-100); }
 .ward-map__legend i[data-severity="severe"] { background: var(--red-100); }
+.ward-map__legend i[data-severity="critical"] { background: var(--red-100); }
+.ward-map__legend i[data-severity="extreme"] { background: var(--red-100); }
 .ward-map__legend i[data-intensity="lower"] { background: #b8d0be; }
 .ward-map__legend i[data-intensity="moderate"] { background: #dfc273; }
 .ward-map__legend i[data-intensity="elevated"] { background: #d18a51; }

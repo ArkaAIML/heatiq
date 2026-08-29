@@ -178,8 +178,8 @@ describe("HeatIQ control-room dashboard", () => {
 
     const thermalPanel = await screen.findByRole("region", { name: "Thermal Stress" });
     expect(within(thermalPanel).getByText("WBGT")).toBeInTheDocument();
-    expect(within(thermalPanel).getByText("Unavailable")).toBeInTheDocument();
-    expect(within(thermalPanel).getByText(/not supplied by the demonstration feed/)).toBeInTheDocument();
+    expect(within(thermalPanel).getAllByText("Unavailable").length).toBeGreaterThan(0);
+    expect(within(thermalPanel).getByText(/WBGT is not supplied by the demonstration feed/)).toBeInTheDocument();
   });
 
   it("associates every dashboard region with a unique heading", async () => {

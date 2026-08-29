@@ -23,10 +23,13 @@ export interface DashboardLocation {
 
 export type WardSeverityState =
   | "no-data"
+  | "low"
   | "moderate"
   | "high"
   | "very-high"
-  | "severe";
+  | "severe"
+  | "critical"
+  | "extreme";
 
 export interface WardOption {
   wardId: string;
@@ -55,6 +58,7 @@ export interface ThermalStress {
   heatIndex: PresentedValue<number>;
   utci: PresentedValue<number>;
   wbgt: PresentedValue<number>;
+  htsi: PresentedValue<number>;
 }
 
 export interface TemperatureForecast {
@@ -64,8 +68,8 @@ export interface TemperatureForecast {
   meaning: "D+1 maximum air temperature";
   unit: "degC";
   forecastHorizonDays: 1;
-  featureDate: string;
-  forecastDate: string;
+  featureDate: string | null;
+  forecastDate: string | null;
   generatedAt: string;
   prediction: PresentedValue<number>;
 }
@@ -95,7 +99,7 @@ export interface WardContext {
 }
 
 export interface Advisory {
-  state: "demonstration" | "stale" | "unavailable";
+  state: "available" | "demonstration" | "stale" | "unavailable";
   reference: string | null;
   title: string;
   actions: string[];

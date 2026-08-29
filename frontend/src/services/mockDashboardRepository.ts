@@ -118,6 +118,7 @@ export function buildMockDashboardSnapshot(
       heatIndex: demoValue(44.2, "°C", "Demonstration deterministic output"),
       utci: demoValue(42.6, "°C", "Demonstration deterministic output"),
       wbgt: unavailableValue("WBGT is not supplied by the demonstration feed", "°C"),
+      htsi: unavailableValue("HTSI is not supplied by the demonstration feed"),
     },
     temperatureForecast: {
       modelName: "Linear Regression",

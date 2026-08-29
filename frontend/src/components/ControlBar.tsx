@@ -1,4 +1,4 @@
-import type { WardOption } from "../types/dashboard";
+import type { DataMode, WardOption } from "../types/dashboard";
 
 interface ControlBarProps {
   ward: string;
@@ -7,6 +7,7 @@ interface ControlBarProps {
   isLoading: boolean;
   sourceLabel: string;
   wardOptions: readonly WardOption[];
+  dataMode: DataMode;
 }
 
 export function ControlBar({
@@ -16,6 +17,7 @@ export function ControlBar({
   isLoading,
   sourceLabel,
   wardOptions,
+  dataMode,
 }: ControlBarProps) {
   return (
     <section className="control-bar" aria-label="Dashboard controls">
@@ -29,17 +31,21 @@ export function ControlBar({
           onChange={(event) => onWardChange(event.target.value)}
         >
           {wardOptions.length === 0 ? (
-            <option value="all">No demonstration wards available</option>
+            <option value="all">{dataMode === "demonstration"
+              ? "No demonstration wards available"
+              : "No wards available"}</option>
           ) : (
             wardOptions.map((option) => (
               <option key={option.wardId} value={option.wardId}>
-                {option.wardName} · {option.wardId === "all" ? "Demo view" : "Demo selection"}
+                {option.wardName}{dataMode === "demonstration"
+                  ? ` · ${option.wardId === "all" ? "Demo view" : "Demo selection"}`
+                  : ""}
               </option>
             ))
           )}
         </select>
         <span className="control-bar__help" id="ward-select-help">
-          Demonstration administrative selection
+          {dataMode === "demonstration" ? "Demonstration" : "Backend"} administrative selection
         </span>
       </div>
       <div className="control-bar__readout">
@@ -48,7 +54,7 @@ export function ControlBar({
       </div>
       <div className="control-bar__readout">
         <span className="control-bar__label">Refresh cycle</span>
-        <strong>Manual · Demo repository</strong>
+        <strong>Manual · {dataMode === "demonstration" ? "Demo repository" : "Backend API"}</strong>
       </div>
       <button type="button" onClick={onRefresh} disabled={isLoading} aria-busy={isLoading}>
         {isLoading ? "Refreshing data…" : "Refresh data"}

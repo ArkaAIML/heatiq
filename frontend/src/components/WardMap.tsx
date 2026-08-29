@@ -9,10 +9,13 @@ interface WardMapProps {
 
 const severityLabels: Record<WardSeverityState, string> = {
   "no-data": "No data",
+  low: "Low",
   moderate: "Moderate",
   high: "High",
   "very-high": "Very high",
   severe: "Severe",
+  critical: "Critical",
+  extreme: "Extreme",
 };
 
 type MapLayer = "severity" | "heat-intensity";

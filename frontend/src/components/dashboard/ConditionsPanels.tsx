@@ -13,14 +13,15 @@ function formatPrediction(value: PresentedValue<number>): string {
 
 export function ConditionsPanels({ snapshot }: ConditionsPanelsProps) {
   const { currentWeather, thermalStress, temperatureForecast } = snapshot;
+  const isLive = snapshot.dataMode === "live";
 
   return (
     <>
       <SectionPanel
         number="02"
         title="Current Weather"
-        eyebrow="Observed conditions · Demo repository"
-        status={<StatusBadge>Demo data</StatusBadge>}
+        eyebrow={`Observed conditions · ${isLive ? "Backend API" : "Demo repository"}`}
+        status={<StatusBadge>{isLive ? "Backend data" : "Demo data"}</StatusBadge>}
         className="panel-weather"
       >
         <dl className="metric-grid">
@@ -34,7 +35,7 @@ export function ConditionsPanels({ snapshot }: ConditionsPanelsProps) {
       <SectionPanel
         number="03"
         title="Thermal Stress"
-        eyebrow="Deterministic indices · Demo repository"
+        eyebrow={`Deterministic indices · ${isLive ? "Backend API" : "Demo repository"}`}
         status={<StatusBadge>Mixed availability</StatusBadge>}
         className="panel-thermal"
       >
@@ -42,6 +43,7 @@ export function ConditionsPanels({ snapshot }: ConditionsPanelsProps) {
           <DataValue label="Heat Index" data={thermalStress.heatIndex} />
           <DataValue label="UTCI" data={thermalStress.utci} />
           <DataValue label="WBGT" data={thermalStress.wbgt} />
+          <DataValue label="HTSI" data={thermalStress.htsi} />
         </dl>
       </SectionPanel>
 
@@ -49,20 +51,20 @@ export function ConditionsPanels({ snapshot }: ConditionsPanelsProps) {
         number="04"
         title="D+1 Maximum Air Temperature"
         eyebrow={`ML forecast · ${temperatureForecast.modelName} ${temperatureForecast.modelVersion}`}
-        status={<StatusBadge>Demo prediction</StatusBadge>}
+        status={<StatusBadge>{isLive ? "Backend prediction" : "Demo prediction"}</StatusBadge>}
         className="panel-forecast"
       >
         <div className="forecast-reading" data-state={temperatureForecast.prediction.state}>
           <span>Forecast value</span>
           <strong>{formatPrediction(temperatureForecast.prediction)}</strong>
-          <small>{temperatureForecast.unit} · {temperatureForecast.forecastHorizonDays}-day horizon · Demo output</small>
+          <small>{temperatureForecast.unit} · {temperatureForecast.forecastHorizonDays}-day horizon · {isLive ? "Backend output" : "Demo output"}</small>
         </div>
         <dl className="model-contract">
           <div><dt>Meaning</dt><dd>{temperatureForecast.meaning}</dd></div>
           <div><dt>Target</dt><dd>{temperatureForecast.target}</dd></div>
           <div><dt>Model</dt><dd>{temperatureForecast.modelName} {temperatureForecast.modelVersion}</dd></div>
-          <div><dt>Feature date</dt><dd>{temperatureForecast.featureDate}</dd></div>
-          <div><dt>Forecast date</dt><dd>{temperatureForecast.forecastDate}</dd></div>
+          <div><dt>Feature date</dt><dd>{temperatureForecast.featureDate ?? "Unavailable"}</dd></div>
+          <div><dt>Forecast date</dt><dd>{temperatureForecast.forecastDate ?? "Unavailable"}</dd></div>
           <div><dt>Generated at</dt><dd>{temperatureForecast.generatedAt}</dd></div>
         </dl>
       </SectionPanel>

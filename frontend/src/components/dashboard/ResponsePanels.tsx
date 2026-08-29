@@ -14,6 +14,7 @@ function displayValue<T>(value: PresentedValue<T>, format: (present: T) => strin
 export function ResponsePanels({ snapshot }: ResponsePanelsProps) {
   const { dangerousHours, wardContext, advisory, citizenWarning } = snapshot;
   const dangerousHoursAvailable = dangerousHours.startTime !== null && dangerousHours.endTime !== null;
+  const isLive = snapshot.dataMode === "live";
 
   return (
     <>
@@ -21,7 +22,7 @@ export function ResponsePanels({ snapshot }: ResponsePanelsProps) {
         number="05"
         title="Dangerous-Hours Outlook"
         eyebrow="Separate operational feed"
-        status={<StatusBadge tone="warning">Demo window</StatusBadge>}
+        status={<StatusBadge tone="warning">{dangerousHoursAvailable ? "Demo window" : "Unavailable"}</StatusBadge>}
         className="panel-danger"
       >
         {dangerousHoursAvailable ? (
@@ -41,18 +42,20 @@ export function ResponsePanels({ snapshot }: ResponsePanelsProps) {
           </DataStateNotice>
         )}
         <p className="panel-note"><strong>{dangerousHours.sourceLabel}.</strong> {dangerousHours.note}</p>
-        <div className="timeline-placeholder" aria-label="Demonstration dangerous-hours timeline">
-          {Array.from({ length: 8 }, (_, index) => (
-            <span key={index} className={index >= 2 && index <= 5 ? "is-warning" : ""} />
-          ))}
-        </div>
+        {dangerousHoursAvailable ? (
+          <div className="timeline-placeholder" aria-label="Demonstration dangerous-hours timeline">
+            {Array.from({ length: 8 }, (_, index) => (
+              <span key={index} className={index >= 2 && index <= 5 ? "is-warning" : ""} />
+            ))}
+          </div>
+        ) : null}
       </SectionPanel>
 
       <SectionPanel
         number="06"
         title="Ward Context & Resources"
-        eyebrow="Exposure and capacity · Demo repository"
-        status={<StatusBadge>Demo data</StatusBadge>}
+        eyebrow={`Exposure and capacity · ${isLive ? "Backend API" : "Demo repository"}`}
+        status={<StatusBadge>{isLive ? "Backend data" : "Demo data"}</StatusBadge>}
         className="panel-context"
       >
         <dl className="summary-list summary-list--compact">
@@ -63,7 +66,7 @@ export function ResponsePanels({ snapshot }: ResponsePanelsProps) {
         </dl>
         {wardContext.vulnerableGroups.value ? (
           <div className="context-groups">
-            <span>Demonstration vulnerable-group context</span>
+            <span>{isLive ? "Vulnerable-group context" : "Demonstration vulnerable-group context"}</span>
             <ul>{wardContext.vulnerableGroups.value.map((group) => <li key={group}>{group}</li>)}</ul>
           </div>
         ) : null}
@@ -72,13 +75,13 @@ export function ResponsePanels({ snapshot }: ResponsePanelsProps) {
       <SectionPanel
         number="07"
         title="Government Action Advisory"
-        eyebrow="Operational circular · Demonstration"
-        status={<StatusBadge tone="warning">Demo advisory</StatusBadge>}
+        eyebrow={`Operational circular · ${isLive ? "Backend rules" : "Demonstration"}`}
+        status={<StatusBadge tone="warning">{isLive ? "Backend advisory" : "Demo advisory"}</StatusBadge>}
         className="panel-advisory"
       >
         <article className="advisory-sheet">
           <header>
-            <span>Demonstration decision-support output</span>
+            <span>{isLive ? "Backend decision-support output" : "Demonstration decision-support output"}</span>
             <strong>Reference: {advisory.reference ?? "Unavailable"}</strong>
           </header>
           <h3>{advisory.title}</h3>
@@ -88,18 +91,18 @@ export function ResponsePanels({ snapshot }: ResponsePanelsProps) {
             <p>No operational recommendation is available.</p>
           )}
           <div className="reason-codes">Reason codes: {advisory.reasonCodes.join(" · ") || "Unavailable"}</div>
-          <footer>For authorised review · Demonstration interface</footer>
+          <footer>For authorised review · {isLive ? "Backend-connected interface" : "Demonstration interface"}</footer>
         </article>
       </SectionPanel>
 
       <SectionPanel
         number="08"
         title="Citizen Warning Preview"
-        eyebrow="Public communication · Demonstration"
+        eyebrow={`Public communication · ${isLive ? "Unavailable" : "Demonstration"}`}
         className="panel-citizen"
       >
         <div className="citizen-preview">
-          <span className="citizen-preview__label">Demonstration message · Not issued</span>
+          <span className="citizen-preview__label">{isLive ? "Unavailable · Not issued" : "Demonstration message · Not issued"}</span>
           <h3>{citizenWarning.headline}</h3>
           <p>{citizenWarning.message}</p>
           <dl>
